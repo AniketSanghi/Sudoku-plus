@@ -194,31 +194,37 @@ void BoxCondition()
 //Function to Convert returned output of minisat and print the solution of puzzle
 void DecodeOutputToPuzzleSolution()
 {
-	
+	char satisfiability[10];
 	int data;
+
 	FILE *solution = fopen("minisat_outputFile.txt","r");
-	fseek(solution,3,SEEK_SET);
-	for(int i=0;i<729;++i)
-	{
-		fscanf(solution,"%d",&data);
 
-		if(data>0)
+	fgets(satisfiability,10,solution);
+	if(satisfiability[0]!='U')
+	{
+		for(int i=0;i<729;++i)
 		{
-			Puzzle[((data-1)%81)/9][((data-1)%81)%9] = (data-1)/81 + 1;
+			fscanf(solution,"%d",&data);
+
+			if(data>0)
+			{
+				Puzzle[((data-1)%81)/9][((data-1)%81)%9] = (data-1)/81 + 1;
+			}
+		}
+
+		fclose(solution);
+
+		for(int i=0;i<9;++i)
+		{
+			for(int j=0;j<9;++j)
+			{
+				printf("%d",Puzzle[i][j]);
+				if(j!=8) printf(" ");
+			}
+			printf("\n");
 		}
 	}
-
-	fclose(solution);
-
-	for(int i=0;i<9;++i)
-	{
-		for(int j=0;j<9;++j)
-		{
-			printf("%d",Puzzle[i][j]);
-			if(j!=8) printf(" ");
-		}
-		printf("\n");
-	}
+	else printf("Solution doesn't exist");
 }
 
 int main()
