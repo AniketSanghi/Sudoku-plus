@@ -7,18 +7,20 @@ struct cell
 	int c;
 };
 
-
+int tempcount = 0;
 int Puzzle[9][9];
 
 
 //Function to encode data from given puzzle to corresponding extra clauses 
-void EncodePuzzleData()
+void EncodePuzzleData(char *filename)
 {
 	long long int count = 0; //To count the no. of extra clauses needed using the data given in puzzle
 	char data;    //variable to read data from file
 
 	//Read Puzzle data and append the corresponding encoding of the input to clauses in minisat input file
-	FILE *readpuzzle = fopen("puzzle_1.txt","r");
+	
+	FILE *readpuzzle = fopen(filename,"r");
+	if(readpuzzle == NULL) {printf("\n\nNo such file exist. Considering empty sudoku\n\n");return;}
 	FILE *minisatInput = fopen("minisat_inputFile.txt","w");
 
 	fprintf(minisatInput,"p cnf 729 12393\n");   //Telling that it is in cnf and giving information about no. of clauses and variables
@@ -43,8 +45,8 @@ void EncodePuzzleData()
 	}
 	//Editing the number of clauses based on extra clauses from given data
 	fseek(minisatInput,9,SEEK_SET);
-	fprintf(minisatInput," %lld",11745+count);
-
+	fprintf(minisatInput," %lld",12393+count);
+	tempcount = count;
 	//Closing files
 	fclose(readpuzzle);
 	fclose(minisatInput);
@@ -164,31 +166,30 @@ void BoxCondition()
 }
 
 //Function to write clauses that tells that no two cells in a diagonal should have same digit
-// void DiagonalCondition()
-// {
-// 	FILE *minisatInput = fopen("minisat_inputFile.txt","a");
+void DiagonalCondition()
+{
+	FILE *minisatInput = fopen("minisat_inputFile.txt","a");
 
-// 	for(int d=0;d<9;++d)
-// 	{
-// 		for(int i=0;i<9;++i)
-// 		{
-// 			for(int j=i+1;j<9;++j)
-// 			{
-// 				//left top to right bottom diagonal
-// 				fprintf(minisatInput,"%d %d 0\n", -(d*81 + i*9 + i+1), -(d*81 + j*9 + j+1));
+	for(int d=0;d<9;++d)
+	{
+		for(int i=0;i<9;++i)
+		{
+			for(int j=i+1;j<9;++j)
+			{
+				//left top to right bottom diagonal
+				fprintf(minisatInput,"%d %d 0\n", -(d*81 + i*9 + i+1), -(d*81 + j*9 + j+1));
 
-// 				//Right top to left bottom diagonal
-// 				fprintf(minisatInput,"%d %d 0\n", -(d*81 + i*9 + 8-i+1), -(d*81 + j*9 + 8-j+1));
+				//Right top to left bottom diagonal
+				fprintf(minisatInput,"%d %d 0\n", -(d*81 + i*9 + 8-i+1), -(d*81 + j*9 + 8-j+1));
 
-// 			}
-// 		}
-// 	}  
-
-// 	////////// To change the number of clauses above //////////
+			}
+		}
+	}  
 
 
-// 	fclose(minisatInput);	
-// }
+
+	fclose(minisatInput);	
+}
 
 
 //Function to Convert returned output of minisat and print the solution of puzzle
@@ -214,6 +215,7 @@ void DecodeOutputToPuzzleSolution()
 
 		fclose(solution);
 
+		//Printing the Solution
 		for(int i=0;i<9;++i)
 		{
 			for(int j=0;j<9;++j)
@@ -224,23 +226,85 @@ void DecodeOutputToPuzzleSolution()
 			printf("\n");
 		}
 	}
-	else printf("Solution doesn't exist");
+	else printf("Solution doesn't exist\n");
 }
 
-int main()
+//Function to count the number of solutions of the given sudoku
+long long int NumberOfSolutions()
 {
-	EncodePuzzleData();
+	long long int count = 0;
+	int satisfiability = 1;
+	int data;
+    char sat[10];
+
+	while(satisfiability)
+	{
+		
+		FILE *output = fopen("minisat_outputFile.txt","r");
+		FILE *input = fopen("minisat_inputFile.txt","a");
+		fgets(sat,10,output);
+		if(sat[0]=='U') {satisfiability = 0; return count;}
+		else
+		{
+			if(count==10) return count;
+
+			for(int i=0;i<729;++i)
+			{
+				fscanf(output,"%d",&data);
+				fprintf(input,"%d ",-data);
+				
+			}
+			fprintf(input,"0\n");
+			
+			count++;
+			
+			
+			
+		}
+		
+		fclose(input);
+		fclose(output);
+		
+		// FILE *reinput = fopen("minisat_inputFile.txt","w");
+		// fseek(reinput,9,SEEK_SET);
+		// fprintf(reinput," %lld",12393+tempcount+count);
+		// fclose(reinput);
+
+		printf("Solution %lld: \n",count);
+		DecodeOutputToPuzzleSolution();
+		system("minisat minisat_inputFile.txt minisat_outputFile.txt");
+
+	}
+
+	return count;
+}
+
+int main(int argc, char *argv[])
+{
+	if(argc==1) return 0;
+	EncodePuzzleData(argv[1]);
 	CellCondition1();
 	CellCondition2();
 	RowCondition();
 	ColumnCondition();
 	BoxCondition();
-	//DiagonalCondition();
+	DiagonalCondition();
 
 	system("minisat minisat_inputFile.txt minisat_outputFile.txt");
 
-	DecodeOutputToPuzzleSolution();
+	// DecodeOutputToPuzzleSolution();
+
+	long long int noOfSolutions = NumberOfSolutions();
+	if(noOfSolutions==10)
+		printf("\n\nThe total number of solutions of the given sudoku puzzle is greater than or equal to \n%lld\n\n", noOfSolutions);
+
+	else
+		printf("\n\nThe total number of solutions of the given sudoku puzzle is \n%lld\n\n", noOfSolutions);
+
+	return 0;
 }
+
+
 
 
 
