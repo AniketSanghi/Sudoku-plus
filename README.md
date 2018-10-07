@@ -13,11 +13,15 @@ A program to solve a sudoku+ puzzle using miniSAT and another program to create 
 
 # How To Run
 - To solve a sudoku+ puzzle stored in puzzle.txt file
-     
+
+			 gcc -o sudokuPlusSolver sudokuPlusSolver.c	 
+
              ./sudokuPlusSolver puzzle.txt
              
 - To create a random sudoku+ puzzle and store it in puzzle_1.txt
-
+				
+			 gcc -o sudokuPlusPuzzleCreator sudokuPlusPuzzleCreator.c
+			 
              ./sudokuPlusPuzzleCreator puzzle_1.txt
              
 ---
