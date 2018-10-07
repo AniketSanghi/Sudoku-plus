@@ -7,7 +7,6 @@ struct cell
 	int c;
 };
 
-int tempcount = 0;
 int Puzzle[9][9];
 
 
@@ -46,7 +45,6 @@ void EncodePuzzleData(char *filename)
 	//Editing the number of clauses based on extra clauses from given data
 	fseek(minisatInput,9,SEEK_SET);
 	fprintf(minisatInput," %lld",12393+count);
-	tempcount = count;
 	//Closing files
 	fclose(readpuzzle);
 	fclose(minisatInput);
@@ -192,6 +190,7 @@ void DiagonalCondition()
 }
 
 
+
 //Function to Convert returned output of minisat and print the solution of puzzle
 void DecodeOutputToPuzzleSolution()
 {
@@ -229,55 +228,6 @@ void DecodeOutputToPuzzleSolution()
 	else printf("Solution doesn't exist\n");
 }
 
-//Function to count the number of solutions of the given sudoku
-long long int NumberOfSolutions()
-{
-	long long int count = 0;
-	int satisfiability = 1;
-	int data;
-    char sat[10];
-
-	while(satisfiability)
-	{
-		
-		FILE *output = fopen("minisat_outputFile.txt","r");
-		FILE *input = fopen("minisat_inputFile.txt","a");
-		fgets(sat,10,output);
-		if(sat[0]=='U') {satisfiability = 0; return count;}
-		else
-		{
-			if(count==10) return count;
-
-			for(int i=0;i<729;++i)
-			{
-				fscanf(output,"%d",&data);
-				fprintf(input,"%d ",-data);
-				
-			}
-			fprintf(input,"0\n");
-			
-			count++;
-			
-			
-			
-		}
-		
-		fclose(input);
-		fclose(output);
-		
-		// FILE *reinput = fopen("minisat_inputFile.txt","w");
-		// fseek(reinput,9,SEEK_SET);
-		// fprintf(reinput," %lld",12393+tempcount+count);
-		// fclose(reinput);
-
-		printf("Solution %lld: \n",count);
-		DecodeOutputToPuzzleSolution();
-		system("minisat minisat_inputFile.txt minisat_outputFile.txt");
-
-	}
-
-	return count;
-}
 
 int main(int argc, char *argv[])
 {
@@ -292,14 +242,9 @@ int main(int argc, char *argv[])
 
 	system("minisat minisat_inputFile.txt minisat_outputFile.txt");
 
-	// DecodeOutputToPuzzleSolution();
+	DecodeOutputToPuzzleSolution();
 
-	long long int noOfSolutions = NumberOfSolutions();
-	if(noOfSolutions==10)
-		printf("\n\nThe total number of solutions of the given sudoku puzzle is greater than or equal to \n%lld\n\n", noOfSolutions);
-
-	else
-		printf("\n\nThe total number of solutions of the given sudoku puzzle is \n%lld\n\n", noOfSolutions);
+	
 
 	return 0;
 }
